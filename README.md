@@ -6,9 +6,9 @@
 ![Clean Architecture](https://img.shields.io/badge/Architecture-Clean--Arch-orange)
 ![Swagger](https://img.shields.io/badge/Documentation-Swagger-brightgreen?logo=swagger)
 
-API RESTful para gerenciamento do catálogo e times de Pokémons desenvolvida na disciplina de **Desenvolvimento de APIs Modernas**.
+API RESTful para gerenciamento do catálogo e times de Pokémons desenvolvida na disciplina de **Tópicos Especiais em Engenharia de Software*.
 
-Este repositório contempla a **Entrega 1 (Módulo 1)**, focada no desacoplamento de código via **Clean Architecture**, repositório em memória (*In-Memory*), documentação interativa com **Swagger** e tratamento global de erros.
+Este repositório contempla a **Entrega 1 (Módulo 1)**, focada no desacoplamento de código via **Clean Architecture**, repositório em memória (*In-Memory*), documentação interativa com **Swagger**
 
 ---
 
@@ -125,18 +125,6 @@ curl --request GET \
 ```
 
 ---
-
-## 🛡️ Padronização de Erros
-
-A API utiliza a classe AppError e um Middleware Global de Erros, garantindo respostas estruturadas:
-
-```json
-
-{
-  "status": "error",
-  "statusCode": 404,
-  "message": "Pokémon não encontrado no catálogo."
-}
 
 ```
 
