@@ -19,27 +19,52 @@ const doc = {
       description: 'Endpoints de gerenciamento de pokémons',
     },
   ],
-  definitions: {
-    Pokemon: {
-      id: '1',
-      name: 'Bulbasaur',
-      type: 'Grass',
-      hp: 45,
-    },
-    CreatePokemonDto: {
-      id: '1',
-      name: 'Bulbasaur',
-      type: 'Grass',
-      hp: 45,
-    },
-    ErrorResponse: {
-      error: 'Pokémon não encontrado no catálogo.',
+  components: {
+    schemas: {
+      Pokemon: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', example: '1' },
+          name: { type: 'string', example: 'Bulbasaur' },
+          type: { type: 'string', example: 'Grass' },
+          hp: { type: 'number', example: 45 },
+        },
+      },
+      CreatePokemonDto: {
+        type: 'object',
+        required: ['id', 'name', 'type', 'hp'],
+        properties: {
+          id: { type: 'string', example: '1' },
+          name: { type: 'string', example: 'Bulbasaur' },
+          type: { type: 'string', example: 'Grass' },
+          hp: { type: 'number', example: 45 },
+        },
+      },
+      UpdatePokemonDto: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', example: 'Ivysaur' },
+          type: { type: 'string', example: 'Grass' },
+          hp: { type: 'number', example: 60 },
+        },
+      },
+      ErrorResponse: {
+        type: 'object',
+        properties: {
+          error: {
+            type: 'string',
+            example: 'Pokémon não encontrado no catálogo.',
+          },
+        },
+      },
     },
   },
 };
 
 const outputFile = path.resolve(__dirname, 'swagger-output.json');
 
-const endpointsFiles = [path.resolve(__dirname, '../../infrastructure/http/routes/pokemonRoutes.ts')];
+const endpointsFiles = [
+  path.resolve(__dirname, '../../infrastructure/http/routes/pokemonRoutes.ts'),
+];
 
 swaggerAutogen({ openapi: '3.0.0' })(outputFile, endpointsFiles, doc);

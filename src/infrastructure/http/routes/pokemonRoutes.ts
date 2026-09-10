@@ -1,97 +1,178 @@
-import { Router, Request, Response } from 'express';
-import { Pokemon } from '../../../domain/entities/Pokemon';
-import { InMemoryPokemonRepository } from '../../../infrastructure/database/in-memory/InMemoryPokemonRepository';
+import { Router } from 'express';
+import { makePokemonController } from '../../../main/factories/makePokemonController.factory';
 
-const PokemonRouter = Router();
-const pokemonRepository = new InMemoryPokemonRepository();
+const pokemonRouter = Router();
+const pokemonController = makePokemonController();
 
-// Lista todos os pokemons cadastrados e aplica filtros se houver
-PokemonRouter.get('/', (req: Request, res: Response) => {
-  const { type } = req.query;
-
-  if (type) {
-    const filteredPokemons = pokemonRepository
-      .findAll()
-      .filter((p: Pokemon) => p.type.toLowerCase() === String(type).toLowerCase());
-
-    return res.status(200).json(filteredPokemons);
-  }
-
-  return res.status(200).json(pokemonRepository.findAll());
+pokemonRouter.get('/', (req, res) => {
+  /*
+    #swagger.tags = ['Pokemons']
+    #swagger.summary = 'Lista todos os Pokémons'
+    #swagger.description = 'Endpoint para listar Pokémons cadastrados, com filtro opcional por tipo.'
+    #swagger.parameters['type'] = {
+      in: 'query',
+      name: 'type',
+      required: false,
+      schema: { type: 'string', example: 'Electric' },
+      description: 'Filtra os Pokémons pelo tipo.'
+    }
+    #swagger.responses[200] = {
+      description: 'Lista de Pokémons retornada com sucesso.',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/Pokemon' }
+          }
+        }
+      }
+    }
+  */
+  return pokemonController.list(req, res);
 });
 
-// Busca um pokémon pelo ID (Status 200 OK ou 404 Not Found)
-PokemonRouter.get('/:id', (req: Request, res: Response) => {
-  const { id } = req.params; // Extrai o parâmetro da rota
-
-  const pokemon = pokemonRepository.findById(String(id));
-
-  if (!pokemon) {
-    return res.status(404).json({ error: 'Pokémon não encontrado no catálogo.' });
-  }
-
-  return res.status(200).json(pokemon);
+pokemonRouter.get('/:id', (req, res) => {
+  /*
+    #swagger.tags = ['Pokemons']
+    #swagger.summary = 'Busca um Pokémon pelo ID'
+    #swagger.description = 'Endpoint para consultar um Pokémon específico pelo seu ID.'
+    #swagger.parameters['id'] = {
+      in: 'path',
+      name: 'id',
+      required: true,
+      schema: { type: 'string', example: '25' },
+      description: 'ID do Pokémon.'
+    }
+    #swagger.responses[200] = {
+      description: 'Pokémon encontrado com sucesso.',
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/Pokemon' }
+        }
+      }
+    }
+    #swagger.responses[404] = {
+      description: 'Pokémon não encontrado.',
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+        }
+      }
+    }
+  */
+  return pokemonController.getById(req, res);
 });
 
-// Cadastra um novo pokémon (Status 201 Created ou 400 Bad Request)
-PokemonRouter.post('/', (req: Request, res: Response) => {
-  const { id, name, type, hp } = req.body;
-
-  if (!id || !name || !type || !hp) {
-    return res.status(400).json({
-      error: 'Campos obrigatórios ausentes: id, name, type e hp são necessários.'
-    });
-  }
-
-  const pokemonExists = pokemonRepository.findById(id);
-  if (pokemonExists) {
-    return res.status(400).json({ error: 'Pokémon com este ID já existe.' });
-  }
-
-  const newPokemon = pokemonRepository.create({
-    id,
-    name,
-    type,
-    hp: Number(hp),
-  });
-
-  return res.status(201).json({
-    message: 'Pokémon cadastrado com sucesso!',
-    data: newPokemon,
-  });
+pokemonRouter.post('/', (req, res) => {
+  /*
+    #swagger.tags = ['Pokemons']
+    #swagger.summary = 'Cadastra um novo Pokémon'
+    #swagger.description = 'Endpoint para cadastrar um Pokémon no catálogo.'
+    #swagger.requestBody = {
+      required: true,
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/CreatePokemonDto' }
+        }
+      }
+    }
+    #swagger.responses[201] = {
+      description: 'Pokémon cadastrado com sucesso.',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              message: { type: 'string', example: 'Pokémon cadastrado com sucesso!' },
+              data: { $ref: '#/components/schemas/Pokemon' }
+            }
+          }
+        }
+      }
+    }
+    #swagger.responses[400] = {
+      description: 'Dados inválidos ou ID já existente.',
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+        }
+      }
+    }
+  */
+  return pokemonController.create(req, res);
 });
 
-PokemonRouter.put('/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { name, type, hp } = req.body;
-
-  const updatedPokemon = pokemonRepository.update(String(id), { name, type, hp });
-
-  if (!updatedPokemon) {
-    return res.status(404).json({ error: 'Pokémon não encontrado no catálogo.' });
-  }
-
-  return res.status(200).json({
-    message: 'Pokémon atualizado com sucesso!',
-    data: updatedPokemon,
-  });
+pokemonRouter.put('/:id', (req, res) => {
+  /*
+    #swagger.tags = ['Pokemons']
+    #swagger.summary = 'Atualiza um Pokémon'
+    #swagger.description = 'Endpoint para atualizar os dados de um Pokémon cadastrado.'
+    #swagger.parameters['id'] = {
+      in: 'path',
+      name: 'id',
+      required: true,
+      schema: { type: 'string', example: '25' },
+      description: 'ID do Pokémon.'
+    }
+    #swagger.requestBody = {
+      required: true,
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/UpdatePokemonDto' }
+        }
+      }
+    }
+    #swagger.responses[200] = {
+      description: 'Pokémon atualizado com sucesso.',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              message: { type: 'string', example: 'Pokémon atualizado com sucesso!' },
+              data: { $ref: '#/components/schemas/Pokemon' }
+            }
+          }
+        }
+      }
+    }
+    #swagger.responses[404] = {
+      description: 'Pokémon não encontrado.',
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+        }
+      }
+    }
+  */
+  return pokemonController.update(req, res);
 });
 
-PokemonRouter.delete('/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-
-  const deletedPokemon = pokemonRepository.delete(String(id));
-
-  if (!deletedPokemon) {
-    return res.status(404).json({ error: 'Pokémon não encontrado no catálogo.' });
-  }
-
-  return res.status(200).json({
-    message: 'Pokémon removido com sucesso!',
-    data: deletedPokemon,
-  });
+pokemonRouter.delete('/:id', (req, res) => {
+  /*
+    #swagger.tags = ['Pokemons']
+    #swagger.summary = 'Remove um Pokémon'
+    #swagger.description = 'Endpoint para remover um Pokémon do catálogo.'
+    #swagger.parameters['id'] = {
+      in: 'path',
+      name: 'id',
+      required: true,
+      schema: { type: 'string', example: '25' },
+      description: 'ID do Pokémon.'
+    }
+    #swagger.responses[204] = {
+      description: 'Pokémon removido com sucesso. A resposta não possui conteúdo.'
+    }
+    #swagger.responses[404] = {
+      description: 'Pokémon não encontrado.',
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+        }
+      }
+    }
+  */
+  return pokemonController.delete(req, res);
 });
 
-export default PokemonRouter; 
-
-
+export default pokemonRouter;
