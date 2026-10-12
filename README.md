@@ -6,10 +6,6 @@ Tecnologias: Node.js 24, TypeScript, Express 5, PostgreSQL 16, Prisma 6, Zod, Ax
 
 Os imports internos usam os aliases `@domain`, `@application`, `@infrastructure` e `@main`, seguindo a organização do projeto de referência.
 
-- [Como explicar a Etapa 2](docs/como-explicar-etapa-2.md)
-- [Aulas 9, 10, 11 e 12](docs/aulas-9-12.md)
-- [Aulas 7 e 8](docs/aulas-7-8.md)
-
 ## Executar com Docker
 
 ### 1. Configurar o ambiente
