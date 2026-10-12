@@ -1,4 +1,4 @@
-﻿import fs from 'fs';
+import fs from 'fs';
 import path from 'path';
 import swaggerAutogen from 'swagger-autogen';
 import assert from 'node:assert/strict';
@@ -10,9 +10,9 @@ const pokemonProperties = {
     maxLength: 100,
     description:
       'Identificador textual. Os valores search e count são reservados, independentemente de maiúsculas ou minúsculas.',
-    example: '25',
+    example: 'c01ead76-1b3a-4d3a-a627-5e27120ad1ec',
   },
-  name: { type: 'string', minLength: 2, maxLength: 150, example: 'Pikachu' },
+  name: { type: 'string', minLength: 2, maxLength: 150, example: 'pikachu' },
   type: {
     type: 'string',
     enum: ['FIRE', 'WATER', 'GRASS', 'ELECTRIC', 'POISON', 'FLYING'],
@@ -27,6 +27,8 @@ const pokemonProperties = {
   attack: { type: 'integer', minimum: 0, example: 55 },
   defense: { type: 'integer', minimum: 0, example: 40 },
   speed: { type: 'integer', minimum: 0, example: 90 },
+  experience: { type: 'integer', minimum: 0, example: 25 },
+  lastTrainedAt: { type: 'string', format: 'date-time', nullable: true },
   baseExperience: { type: 'integer', minimum: 0, example: 112 },
   height: { type: 'integer', minimum: 0, example: 4 },
   weight: { type: 'integer', minimum: 0, example: 60 },
@@ -38,7 +40,7 @@ const pokemonProperties = {
 const trainerProperties = {
   name: {
     type: 'string',
-    minLength: 1,
+    minLength: 3,
     maxLength: 150,
     example: 'Ash Ketchum',
   },
@@ -50,7 +52,7 @@ const trainerProperties = {
   },
   city: {
     type: 'string',
-    minLength: 1,
+    minLength: 2,
     maxLength: 100,
     example: 'Pallet Town',
   },
@@ -61,12 +63,12 @@ const doc = {
     version: '1.0.0',
     title: 'PokéManager API',
     description:
-      'API de Pokémon e treinadores com persistência em PostgreSQL. Os IDs de Pokémon são textos; os UUIDs de treinadores são gerados pelo servidor.',
+      'Para testar: 1) crie um treinador e copie data.id; 2) use esse UUID nas rotas de captura e equipe; 3) copie o data.id do Pokémon para consultar, editar ou treinar. O ID salvo no banco é diferente do número da espécie na PokéAPI. Ao repetir um cadastro de treinador, use outro e-mail. Na Pokédex, use o nome completo em inglês, como pikachu.',
   },
   servers: [{ url: '/', description: 'Servidor atual' }],
   tags: [
     {
-      name: 'Pokemons',
+      name: 'Pokémon',
       description: 'Cadastro, busca, contagem e nível de Pokémon.',
     },
     {
@@ -98,8 +100,34 @@ const doc = {
         ],
         properties: pokemonProperties,
       },
+      TrainingResult: {
+        type: 'object',
+        properties: {
+          gainedExperience: {
+            type: 'integer',
+            example: 28,
+            description:
+              'Um quarto de baseExperience, arredondado para baixo, com mínimo de 1.',
+          },
+          leveledUp: { type: 'boolean', example: false },
+          level: pokemonProperties.level,
+          experience: pokemonProperties.experience,
+          experienceToNextLevel: {
+            type: 'integer',
+            nullable: true,
+            example: 75,
+          },
+          nextTrainingAt: {
+            type: 'string',
+            format: 'date-time',
+            nullable: true,
+          },
+        },
+      },
       CreatePokemonDto: {
         type: 'object',
+        additionalProperties: false,
+        example: { name: 'pikachu', level: 5 },
         required: ['name'],
         properties: {
           id: pokemonProperties.id,
@@ -107,11 +135,18 @@ const doc = {
           type: pokemonProperties.type,
           hp: pokemonProperties.hp,
           level: pokemonProperties.level,
-          trainerId: pokemonProperties.trainerId,
+          trainerId: {
+            type: 'string',
+            format: 'uuid',
+            description:
+              'Opcional. Copie data.id de um treinador existente; omita para cadastrar sem treinador.',
+          },
         },
       },
       UpdatePokemonDto: {
         type: 'object',
+        additionalProperties: false,
+        example: { level: 10 },
         minProperties: 1,
         description:
           'Informe ao menos um campo. Campos omitidos mantêm seu valor atual.',
@@ -125,6 +160,8 @@ const doc = {
       },
       CapturePokemonDto: {
         type: 'object',
+        additionalProperties: false,
+        example: { name: 'pikachu', level: 5 },
         required: ['name'],
         properties: {
           name: pokemonProperties.name,
@@ -180,11 +217,19 @@ const doc = {
       },
       CreateTrainerDto: {
         type: 'object',
+        additionalProperties: false,
+        example: {
+          name: 'Ash Ketchum',
+          email: 'ash@example.com',
+          city: 'Pallet Town',
+        },
         required: ['name', 'email', 'city'],
         properties: trainerProperties,
       },
       UpdateTrainerDto: {
         type: 'object',
+        additionalProperties: false,
+        example: { city: 'Niterói' },
         minProperties: 1,
         description:
           'Informe ao menos um campo. Campos omitidos mantêm seu valor atual.',
@@ -207,7 +252,15 @@ const doc = {
 };
 
 interface DocumentOperation {
-  parameters?: Array<{ name: string; in: string; schema: unknown }>;
+  parameters?: Array<{
+    name: string;
+    in: string;
+    schema: unknown;
+    description?: string;
+  }>;
+  requestBody?: {
+    content: Record<string, { schema?: { $ref?: string }; example?: unknown }>;
+  };
   responses: Record<string, { description: string; content?: unknown }>;
 }
 
@@ -229,7 +282,15 @@ async function generateSwagger(): Promise<void> {
     ...doc,
     paths: {},
   };
-  const generate = swaggerAutogen({ openapi: '3.0.0', writeOutputFile: false });
+  // Zod usa req.body/req.query internamente: inferência automática interpreta
+  // parseAsync(req...) como campos públicos. Declare entradas nos comentários.
+  const generate = swaggerAutogen({
+    openapi: '3.0.0',
+    writeOutputFile: false,
+    autoQuery: false,
+    autoBody: false,
+    autoHeaders: false,
+  });
   for (const resource of resources) {
     const file = path.resolve(
       __dirname,
@@ -255,6 +316,7 @@ async function generateSwagger(): Promise<void> {
     '/api/v1/pokemons/count': ['get'],
     '/api/v1/pokemons/{id}': ['get', 'put', 'delete'],
     '/api/v1/pokemons/{id}/level': ['patch'],
+    '/api/v1/pokemons/{id}/train': ['post'],
     '/api/v1/trainers': ['get', 'post'],
     '/api/v1/trainers/{id}': ['get', 'put', 'delete'],
     '/api/v1/trainers/{trainerId}/captures': ['post'],
@@ -273,18 +335,66 @@ async function generateSwagger(): Promise<void> {
   for (const [route, operations] of Object.entries(paths)) {
     for (const [method, operation] of Object.entries(operations)) {
       for (const parameter of operation.parameters ?? []) {
-        if (parameter.name === 'id' && parameter.in === 'path') {
-          parameter.schema = route.startsWith('/api/v1/trainers')
-            ? doc.components.schemas.Trainer.properties.id
-            : pokemonProperties.id;
-        } else if (parameter.name === 'trainerId' && parameter.in === 'path') {
-          parameter.schema = doc.components.schemas.Trainer.properties.id;
-        } else if (parameter.name === 'type' && parameter.in === 'query') {
-          parameter.schema = pokemonProperties.type;
-        } else if (parameter.name === 'name' && parameter.in === 'query') {
-          parameter.schema = { ...pokemonProperties.name, example: 'pika' };
+        if (parameter.in === 'path') {
+          const trainer = route.startsWith('/api/v1/trainers');
+          parameter.schema = trainer
+            ? { type: 'string', format: 'uuid' }
+            : { type: 'string', minLength: 1, maxLength: 100 };
+          parameter.description = trainer
+            ? 'UUID do treinador cadastrado. Copie data.id de POST /trainers ou id de GET /trainers.'
+            : 'ID do registro no banco, não o número da espécie na PokéAPI. Copie data.id do cadastro/captura ou data[].id da listagem.';
+        } else if (parameter.in === 'query') {
+          // O autogen interpreta schema inline como objeto de exemplo.
+          // Preserve os tipos OpenAPI reais dos parâmetros declarados nas rotas.
+          const querySchemas: Record<string, unknown> = {
+            type: pokemonProperties.type,
+            page: { type: 'integer', minimum: 1, default: 1, example: 1 },
+            limit: {
+              type: 'integer',
+              minimum: 1,
+              maximum: 50,
+              default: 10,
+              example: 10,
+            },
+            minLevel: {
+              type: 'integer',
+              minimum: 1,
+              maximum: 100,
+              default: 1,
+              example: 1,
+            },
+            maxLevel: {
+              type: 'integer',
+              minimum: 1,
+              maximum: 100,
+              default: 100,
+              example: 100,
+            },
+            name: {
+              type: 'string',
+              minLength: route.startsWith('/api/v1/pokedex') ? 2 : 1,
+              maxLength: 150,
+              example: route.startsWith('/api/v1/pokedex') ? 'pikachu' : 'pika',
+            },
+          };
+          assert.ok(
+            querySchemas[parameter.name],
+            `Parâmetro inesperado: ${parameter.name}`,
+          );
+          parameter.schema = querySchemas[parameter.name];
         }
       }
+      const media = operation.requestBody?.content['application/json'];
+      const schemaName = media?.schema?.$ref?.split('/').pop();
+      if (media && schemaName) {
+        const schemas = doc.components.schemas as Record<
+          string,
+          { example?: unknown }
+        >;
+        if (schemas[schemaName]?.example)
+          media.example = schemas[schemaName].example;
+      }
+
       const acceptsInput =
         route.includes('{id}') ||
         route.endsWith('/search') ||
@@ -306,6 +416,11 @@ async function generateSwagger(): Promise<void> {
       }
     }
   }
+
+  assert.ok(
+    !JSON.stringify(swaggerDocument).includes('parseAsync'),
+    'Swagger expôs detalhes do middleware',
+  );
 
   fs.writeFileSync(
     outputFile,

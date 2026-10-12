@@ -1,6 +1,6 @@
 import { Pokemon } from '@domain/entities/Pokemon';
 import { IPokemonRepository } from '@domain/repositories/IPokemonRepository';
-import { AppError } from '@domain/errors/AppError';
+import { NotFoundError } from '@domain/errors/NotFoundError';
 
 export class GetPokemonById {
   constructor(private readonly pokemonRepository: IPokemonRepository) {}
@@ -8,7 +8,7 @@ export class GetPokemonById {
   async execute(id: string): Promise<Pokemon> {
     const pokemon = await this.pokemonRepository.findById(id);
     if (!pokemon) {
-      throw new AppError('Pokémon não encontrado no catálogo.', 404);
+      throw new NotFoundError('Pokémon');
     }
     return pokemon;
   }

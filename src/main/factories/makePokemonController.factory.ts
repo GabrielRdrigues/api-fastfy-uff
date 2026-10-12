@@ -1,3 +1,4 @@
+import { TrainPokemon } from '@application/use-cases/TrainPokemon';
 import { CreatePokemon } from '@application/use-cases/CreatePokemon';
 import { DeletePokemon } from '@application/use-cases/DeletePokemon';
 import { GetPokemonById } from '@application/use-cases/GetPokemonById';
@@ -25,5 +26,6 @@ export function makePokemonController(): PokemonController {
     new UpdatePokemonLevel(pokemonRepository),
     new SearchPokemons(pokemonRepository),
     new CountPokemons(pokemonRepository),
+    new TrainPokemon(pokemonRepository),
   );
 }

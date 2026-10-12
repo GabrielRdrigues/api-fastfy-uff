@@ -1,0 +1,3 @@
+ALTER TABLE "pokemons"
+ADD COLUMN "experience" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN "last_trained_at" TIMESTAMPTZ;

@@ -16,6 +16,10 @@ export interface IPokemonRepository {
     updatedPokemon: UpdatePokemonDTO,
   ): Promise<Pokemon | undefined>;
   delete(id: string): Promise<Pokemon | undefined>;
+  saveTraining(
+    id: string,
+    data: Pick<Pokemon, 'level' | 'experience' | 'lastTrainedAt'>,
+  ): Promise<Pokemon>;
   updateLevel(id: string, newLevel: number): Promise<void>;
   searchByName(term: string): Promise<Pokemon[]>;
   count(): Promise<number>;

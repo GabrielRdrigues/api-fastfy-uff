@@ -14,7 +14,7 @@ pokedexRouter.get(
       #swagger.tags = ['Pokédex']
       #swagger.summary = 'Consulta um Pokémon diretamente na PokéAPI'
       #swagger.parameters['name'] = { in: 'query', required: true, schema: { type: 'string', example: 'pikachu' } }
-      #swagger.responses[200] = { description: 'Dados oficiais formatados.' }
+      #swagger.responses[200] = { description: 'Dados oficiais formatados. Consulta não cadastra Pokémon.', content: { 'application/json': { schema: { $ref: '#/components/schemas/PokeApiPokemon' } } } }
       #swagger.responses[404] = { description: 'Pokémon não encontrado na PokéAPI.' }
       #swagger.responses[503] = { description: 'PokéAPI temporariamente indisponível.' }
     */

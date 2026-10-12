@@ -1,7 +1,7 @@
 import { UpdatePokemonDTO } from '@application/dtos/pokemon';
 import { Pokemon } from '@domain/entities/Pokemon';
 import { IPokemonRepository } from '@domain/repositories/IPokemonRepository';
-import { AppError } from '@domain/errors/AppError';
+import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ConflictError } from '@domain/errors/ConflictError';
 
 export class UpdatePokemon {
@@ -11,7 +11,7 @@ export class UpdatePokemon {
     if (data.trainerId) {
       const currentPokemon = await this.pokemonRepository.findById(id);
       if (!currentPokemon) {
-        throw new AppError('Pokémon não encontrado no catálogo.', 404);
+        throw new NotFoundError('Pokémon');
       }
 
       // Quem já está no squad não ocupa outra vaga ao editar o próprio cadastro.
@@ -27,7 +27,7 @@ export class UpdatePokemon {
 
     const pokemon = await this.pokemonRepository.update(id, data);
     if (!pokemon) {
-      throw new AppError('Pokémon não encontrado no catálogo.', 404);
+      throw new NotFoundError('Pokémon');
     }
     return pokemon;
   }

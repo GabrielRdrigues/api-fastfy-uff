@@ -35,6 +35,8 @@ export class InMemoryPokemonRepository {
       height: pokemon.height ?? 0,
       weight: pokemon.weight ?? 0,
       level: pokemon.level ?? 1,
+      experience: 0,
+      lastTrainedAt: null,
       imageUrl: pokemon.imageUrl ?? null,
       trainerId: pokemon.trainerId ?? null,
       createdAt: new Date(),

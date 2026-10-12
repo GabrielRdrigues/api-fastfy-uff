@@ -3,6 +3,7 @@ import { makePokemonController } from '@main/factories/makePokemonController.fac
 import { validateRequest } from '@infrastructure/http/middlewares/validateRequest';
 import {
   createPokemonSchema,
+  trainPokemonSchema,
   listPokemonsQuerySchema,
   pokemonIdParamsSchema,
   searchPokemonsQuerySchema,
@@ -18,8 +19,8 @@ pokemonRouter.get(
   validateRequest({ query: listPokemonsQuerySchema }),
   (req, res) => {
     /*
-    #swagger.tags = ['Pokemons']
-    #swagger.summary = 'Lista todos os Pokémons'
+    #swagger.tags = ['Pokémon']
+    #swagger.summary = 'Lista Pokémon cadastrados'
     #swagger.description = 'Lista paginada com filtros opcionais por tipo e intervalo de nível.'
     #swagger.parameters['type'] = {
       in: 'query',
@@ -63,7 +64,7 @@ pokemonRouter.get(
   validateRequest({ query: searchPokemonsQuerySchema }),
   (req, res) => {
     /*
-    #swagger.tags = ['Pokemons']
+    #swagger.tags = ['Pokémon']
     #swagger.summary = 'Busca Pokémons por parte do nome'
     #swagger.description = 'Busca no PostgreSQL com ILIKE, ignorando maiúsculas e minúsculas.'
     #swagger.parameters['name'] = {
@@ -83,7 +84,7 @@ pokemonRouter.get(
 
 pokemonRouter.get('/count', (req, res) => {
   /*
-    #swagger.tags = ['Pokemons']
+    #swagger.tags = ['Pokémon']
     #swagger.summary = 'Conta todos os Pokémons do catálogo'
     #swagger.responses[200] = {
       description: 'Total de Pokémons cadastrados.',
@@ -98,7 +99,7 @@ pokemonRouter.get(
   validateRequest({ params: pokemonIdParamsSchema }),
   (req, res) => {
     /*
-    #swagger.tags = ['Pokemons']
+    #swagger.tags = ['Pokémon']
     #swagger.summary = 'Busca um Pokémon pelo ID'
     #swagger.description = 'Endpoint para consultar um Pokémon específico pelo seu ID.'
     #swagger.parameters['id'] = {
@@ -134,7 +135,7 @@ pokemonRouter.post(
   validateRequest({ body: createPokemonSchema }),
   (req, res) => {
     /*
-    #swagger.tags = ['Pokemons']
+    #swagger.tags = ['Pokémon']
     #swagger.summary = 'Cadastra um novo Pokémon'
     #swagger.description = 'Cadastra pelo nome e enriquece os dados por meio do gateway da PokéAPI.'
     #swagger.requestBody = {
@@ -179,7 +180,7 @@ pokemonRouter.put(
   validateRequest({ params: pokemonIdParamsSchema, body: updatePokemonSchema }),
   (req, res) => {
     /*
-    #swagger.tags = ['Pokemons']
+    #swagger.tags = ['Pokémon']
     #swagger.summary = 'Atualiza um Pokémon'
     #swagger.description = 'Endpoint para atualizar os dados de um Pokémon cadastrado.'
     #swagger.parameters['id'] = {
@@ -225,6 +226,24 @@ pokemonRouter.put(
   },
 );
 
+pokemonRouter.post(
+  '/:id/train',
+  validateRequest({ params: pokemonIdParamsSchema, body: trainPokemonSchema }),
+  (req, res) => {
+    /*
+    #swagger.tags = ['Pokémon']
+    #swagger.summary = 'Treina um Pokémon: ganha XP com base na espécie e descansa por 30 minutos'
+    #swagger.description = 'Sem corpo ou com objeto vazio. O treino concede floor(baseExperience / 4), com mínimo de 1 XP. Custo para subir: 100 vezes o nível atual. Alteração manual de nível continua disponível para testes e preserva XP e descanso.'
+    #swagger.parameters['id'] = { in: 'path', required: true, schema: { type: 'string' } }
+    #swagger.responses[200] = { description: 'Treino concluído.', content: { 'application/json': { schema: { $ref: '#/components/schemas/TrainingResult' } } } }
+    #swagger.responses[400] = { description: 'ID inválido ou campos não permitidos no corpo.' }
+    #swagger.responses[404] = { description: 'Pokémon não encontrado.' }
+    #swagger.responses[409] = { description: 'Nível máximo ou descanso pendente. Durante descanso, details contém nextTrainingAt.' }
+    */
+    return pokemonController.train(req, res);
+  },
+);
+
 pokemonRouter.patch(
   '/:id/level',
   validateRequest({
@@ -233,15 +252,17 @@ pokemonRouter.patch(
   }),
   (req, res) => {
     /*
-    #swagger.tags = ['Pokemons']
-    #swagger.summary = 'Atualiza o nível de um Pokémon'
+    #swagger.tags = ['Pokémon']
+    #swagger.summary = 'Define o nível manualmente (testes)'
     #swagger.parameters['id'] = { in: 'path', required: true, schema: { type: 'string', example: '25' } }
     #swagger.requestBody = {
       required: true,
       content: {
         'application/json': {
+          example: { level: 20 },
           schema: {
             type: 'object',
+            additionalProperties: false,
             required: ['level'],
             properties: { level: { type: 'integer', minimum: 1, maximum: 100, example: 20 } }
           }
@@ -261,7 +282,7 @@ pokemonRouter.delete(
   validateRequest({ params: pokemonIdParamsSchema }),
   (req, res) => {
     /*
-    #swagger.tags = ['Pokemons']
+    #swagger.tags = ['Pokémon']
     #swagger.summary = 'Remove um Pokémon'
     #swagger.description = 'Endpoint para remover um Pokémon do catálogo.'
     #swagger.parameters['id'] = {

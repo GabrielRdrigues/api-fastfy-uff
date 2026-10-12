@@ -3,7 +3,7 @@
   "info": {
     "version": "1.0.0",
     "title": "PokéManager API",
-    "description": "API de Pokémon e treinadores com persistência em PostgreSQL. Os IDs de Pokémon são textos; os UUIDs de treinadores são gerados pelo servidor."
+    "description": "Para testar: 1) crie um treinador e copie data.id; 2) use esse UUID nas rotas de captura e equipe; 3) copie o data.id do Pokémon para consultar, editar ou treinar. O ID salvo no banco é diferente do número da espécie na PokéAPI. Ao repetir um cadastro de treinador, use outro e-mail. Na Pokédex, use o nome completo em inglês, como pikachu."
   },
   "servers": [
     {
@@ -13,7 +13,7 @@
   ],
   "tags": [
     {
-      "name": "Pokemons",
+      "name": "Pokémon",
       "description": "Cadastro, busca, contagem e nível de Pokémon."
     },
     {
@@ -49,13 +49,13 @@
             "minLength": 1,
             "maxLength": 100,
             "description": "Identificador textual. Os valores search e count são reservados, independentemente de maiúsculas ou minúsculas.",
-            "example": "25"
+            "example": "c01ead76-1b3a-4d3a-a627-5e27120ad1ec"
           },
           "name": {
             "type": "string",
             "minLength": 2,
             "maxLength": 150,
-            "example": "Pikachu"
+            "example": "pikachu"
           },
           "type": {
             "type": "string",
@@ -99,6 +99,16 @@
             "minimum": 0,
             "example": 90
           },
+          "experience": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 25
+          },
+          "lastTrainedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
           "baseExperience": {
             "type": "integer",
             "minimum": 0,
@@ -133,8 +143,49 @@
           }
         }
       },
+      "TrainingResult": {
+        "type": "object",
+        "properties": {
+          "gainedExperience": {
+            "type": "integer",
+            "example": 28,
+            "description": "Um quarto de baseExperience, arredondado para baixo, com mínimo de 1."
+          },
+          "leveledUp": {
+            "type": "boolean",
+            "example": false
+          },
+          "level": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 1,
+            "example": 1
+          },
+          "experience": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 25
+          },
+          "experienceToNextLevel": {
+            "type": "integer",
+            "nullable": true,
+            "example": 75
+          },
+          "nextTrainingAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
       "CreatePokemonDto": {
         "type": "object",
+        "additionalProperties": false,
+        "example": {
+          "name": "pikachu",
+          "level": 5
+        },
         "required": [
           "name"
         ],
@@ -144,13 +195,13 @@
             "minLength": 1,
             "maxLength": 100,
             "description": "Identificador textual. Os valores search e count são reservados, independentemente de maiúsculas ou minúsculas.",
-            "example": "25"
+            "example": "c01ead76-1b3a-4d3a-a627-5e27120ad1ec"
           },
           "name": {
             "type": "string",
             "minLength": 2,
             "maxLength": 150,
-            "example": "Pikachu"
+            "example": "pikachu"
           },
           "type": {
             "type": "string",
@@ -180,12 +231,16 @@
           "trainerId": {
             "type": "string",
             "format": "uuid",
-            "nullable": true
+            "description": "Opcional. Copie data.id de um treinador existente; omita para cadastrar sem treinador."
           }
         }
       },
       "UpdatePokemonDto": {
         "type": "object",
+        "additionalProperties": false,
+        "example": {
+          "level": 10
+        },
         "minProperties": 1,
         "description": "Informe ao menos um campo. Campos omitidos mantêm seu valor atual.",
         "properties": {
@@ -193,7 +248,7 @@
             "type": "string",
             "minLength": 2,
             "maxLength": 150,
-            "example": "Pikachu"
+            "example": "pikachu"
           },
           "type": {
             "type": "string",
@@ -229,6 +284,11 @@
       },
       "CapturePokemonDto": {
         "type": "object",
+        "additionalProperties": false,
+        "example": {
+          "name": "pikachu",
+          "level": 5
+        },
         "required": [
           "name"
         ],
@@ -237,7 +297,7 @@
             "type": "string",
             "minLength": 2,
             "maxLength": 150,
-            "example": "Pikachu"
+            "example": "pikachu"
           },
           "level": {
             "type": "integer",
@@ -268,7 +328,7 @@
             "type": "string",
             "minLength": 2,
             "maxLength": 150,
-            "example": "Pikachu"
+            "example": "pikachu"
           },
           "imageUrl": {
             "type": "string",
@@ -344,7 +404,7 @@
           },
           "name": {
             "type": "string",
-            "minLength": 1,
+            "minLength": 3,
             "maxLength": 150,
             "example": "Ash Ketchum"
           },
@@ -356,7 +416,7 @@
           },
           "city": {
             "type": "string",
-            "minLength": 1,
+            "minLength": 2,
             "maxLength": 100,
             "example": "Pallet Town"
           },
@@ -369,6 +429,12 @@
       },
       "CreateTrainerDto": {
         "type": "object",
+        "additionalProperties": false,
+        "example": {
+          "name": "Ash Ketchum",
+          "email": "ash@example.com",
+          "city": "Pallet Town"
+        },
         "required": [
           "name",
           "email",
@@ -377,7 +443,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "minLength": 1,
+            "minLength": 3,
             "maxLength": 150,
             "example": "Ash Ketchum"
           },
@@ -389,7 +455,7 @@
           },
           "city": {
             "type": "string",
-            "minLength": 1,
+            "minLength": 2,
             "maxLength": 100,
             "example": "Pallet Town"
           }
@@ -397,12 +463,16 @@
       },
       "UpdateTrainerDto": {
         "type": "object",
+        "additionalProperties": false,
+        "example": {
+          "city": "Niterói"
+        },
         "minProperties": 1,
         "description": "Informe ao menos um campo. Campos omitidos mantêm seu valor atual.",
         "properties": {
           "name": {
             "type": "string",
-            "minLength": 1,
+            "minLength": 3,
             "maxLength": 150,
             "example": "Ash Ketchum"
           },
@@ -414,7 +484,7 @@
           },
           "city": {
             "type": "string",
-            "minLength": 1,
+            "minLength": 2,
             "maxLength": 100,
             "example": "Pallet Town"
           }
@@ -449,9 +519,9 @@
     "/api/v1/pokemons": {
       "get": {
         "tags": [
-          "Pokemons"
+          "Pokémon"
         ],
-        "summary": "Lista todos os Pokémons",
+        "summary": "Lista Pokémon cadastrados",
         "description": "Lista paginada com filtros opcionais por tipo e intervalo de nível.",
         "parameters": [
           {
@@ -477,21 +547,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "integer"
-                },
-                "minimum": {
-                  "type": "number",
-                  "example": 1
-                },
-                "default": {
-                  "type": "number",
-                  "example": 1
-                }
-              }
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "example": 1
             }
           },
           {
@@ -499,25 +558,11 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "integer"
-                },
-                "minimum": {
-                  "type": "number",
-                  "example": 1
-                },
-                "maximum": {
-                  "type": "number",
-                  "example": 50
-                },
-                "default": {
-                  "type": "number",
-                  "example": 10
-                }
-              }
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10,
+              "example": 10
             }
           },
           {
@@ -525,21 +570,11 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "integer"
-                },
-                "minimum": {
-                  "type": "number",
-                  "example": 1
-                },
-                "maximum": {
-                  "type": "number",
-                  "example": 100
-                }
-              }
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 1,
+              "example": 1
             }
           },
           {
@@ -547,21 +582,11 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "integer"
-                },
-                "minimum": {
-                  "type": "number",
-                  "example": 1
-                },
-                "maximum": {
-                  "type": "number",
-                  "example": 100
-                }
-              }
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 100,
+              "example": 100
             }
           }
         ],
@@ -615,7 +640,7 @@
       },
       "post": {
         "tags": [
-          "Pokemons"
+          "Pokémon"
         ],
         "summary": "Cadastra um novo Pokémon",
         "description": "Cadastra pelo nome e enriquece os dados por meio do gateway da PokéAPI.",
@@ -676,6 +701,10 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreatePokemonDto"
+              },
+              "example": {
+                "name": "pikachu",
+                "level": 5
               }
             }
           }
@@ -685,7 +714,7 @@
     "/api/v1/pokemons/search": {
       "get": {
         "tags": [
-          "Pokemons"
+          "Pokémon"
         ],
         "summary": "Busca Pokémons por parte do nome",
         "description": "Busca no PostgreSQL com ILIKE, ignorando maiúsculas e minúsculas.",
@@ -696,7 +725,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "minLength": 2,
+              "minLength": 1,
               "maxLength": 150,
               "example": "pika"
             }
@@ -732,7 +761,7 @@
     "/api/v1/pokemons/count": {
       "get": {
         "tags": [
-          "Pokemons"
+          "Pokémon"
         ],
         "summary": "Conta todos os Pokémons do catálogo",
         "description": "",
@@ -759,7 +788,7 @@
     "/api/v1/pokemons/{id}": {
       "get": {
         "tags": [
-          "Pokemons"
+          "Pokémon"
         ],
         "summary": "Busca um Pokémon pelo ID",
         "description": "Endpoint para consultar um Pokémon específico pelo seu ID.",
@@ -771,11 +800,9 @@
             "schema": {
               "type": "string",
               "minLength": 1,
-              "maxLength": 100,
-              "description": "Identificador textual. Os valores search e count são reservados, independentemente de maiúsculas ou minúsculas.",
-              "example": "25"
+              "maxLength": 100
             },
-            "description": "ID do Pokémon."
+            "description": "ID do registro no banco, não o número da espécie na PokéAPI. Copie data.id do cadastro/captura ou data[].id da listagem."
           }
         ],
         "responses": {
@@ -813,7 +840,7 @@
       },
       "put": {
         "tags": [
-          "Pokemons"
+          "Pokémon"
         ],
         "summary": "Atualiza um Pokémon",
         "description": "Endpoint para atualizar os dados de um Pokémon cadastrado.",
@@ -825,11 +852,9 @@
             "schema": {
               "type": "string",
               "minLength": 1,
-              "maxLength": 100,
-              "description": "Identificador textual. Os valores search e count são reservados, independentemente de maiúsculas ou minúsculas.",
-              "example": "25"
+              "maxLength": 100
             },
-            "description": "ID do Pokémon."
+            "description": "ID do registro no banco, não o número da espécie na PokéAPI. Copie data.id do cadastro/captura ou data[].id da listagem."
           }
         ],
         "responses": {
@@ -889,6 +914,9 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdatePokemonDto"
+              },
+              "example": {
+                "level": 10
               }
             }
           }
@@ -896,7 +924,7 @@
       },
       "delete": {
         "tags": [
-          "Pokemons"
+          "Pokémon"
         ],
         "summary": "Remove um Pokémon",
         "description": "Endpoint para remover um Pokémon do catálogo.",
@@ -908,11 +936,9 @@
             "schema": {
               "type": "string",
               "minLength": 1,
-              "maxLength": 100,
-              "description": "Identificador textual. Os valores search e count são reservados, independentemente de maiúsculas ou minúsculas.",
-              "example": "25"
+              "maxLength": 100
             },
-            "description": "ID do Pokémon."
+            "description": "ID do registro no banco, não o número da espécie na PokéAPI. Copie data.id do cadastro/captura ou data[].id da listagem."
           }
         ],
         "responses": {
@@ -942,12 +968,76 @@
         }
       }
     },
+    "/api/v1/pokemons/{id}/train": {
+      "post": {
+        "tags": [
+          "Pokémon"
+        ],
+        "summary": "Treina um Pokémon: ganha XP com base na espécie e descansa por 30 minutos",
+        "description": "Sem corpo ou com objeto vazio. O treino concede floor(baseExperience / 4), com mínimo de 1 XP. Custo para subir: 100 vezes o nível atual. Alteração manual de nível continua disponível para testes e preserva XP e descanso.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "description": "ID do registro no banco, não o número da espécie na PokéAPI. Copie data.id do cadastro/captura ou data[].id da listagem."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Treino concluído.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID inválido ou campos não permitidos no corpo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pokémon não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Nível máximo ou descanso pendente. Durante descanso, details contém nextTrainingAt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/pokemons/{id}/level": {
       "patch": {
         "tags": [
-          "Pokemons"
+          "Pokémon"
         ],
-        "summary": "Atualiza o nível de um Pokémon",
+        "summary": "Define o nível manualmente (testes)",
         "description": "",
         "parameters": [
           {
@@ -957,10 +1047,9 @@
             "schema": {
               "type": "string",
               "minLength": 1,
-              "maxLength": 100,
-              "description": "Identificador textual. Os valores search e count são reservados, independentemente de maiúsculas ou minúsculas.",
-              "example": "25"
-            }
+              "maxLength": 100
+            },
+            "description": "ID do registro no banco, não o número da espécie na PokéAPI. Copie data.id do cadastro/captura ou data[].id da listagem."
           }
         ],
         "responses": {
@@ -992,8 +1081,12 @@
           "required": true,
           "content": {
             "application/json": {
+              "example": {
+                "level": 20
+              },
               "schema": {
                 "type": "object",
+                "additionalProperties": false,
                 "required": [
                   "level"
                 ],
@@ -1086,6 +1179,11 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateTrainerDto"
+              },
+              "example": {
+                "name": "Ash Ketchum",
+                "email": "ash@example.com",
+                "city": "Pallet Town"
               }
             }
           }
@@ -1106,14 +1204,24 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid",
-              "example": "550e8400-e29b-41d4-a716-446655440000"
-            }
+              "format": "uuid"
+            },
+            "description": "UUID do treinador cadastrado. Copie data.id de POST /trainers ou id de GET /trainers."
           }
         ],
         "responses": {
           "200": {
-            "description": "Time atual, com até seis Pokémons."
+            "description": "Time atual, com até seis Pokémon.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Pokemon"
+                  }
+                }
+              }
+            }
           },
           "404": {
             "description": "Treinador não encontrado.",
@@ -1142,14 +1250,30 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid",
-              "example": "550e8400-e29b-41d4-a716-446655440000"
-            }
+              "format": "uuid"
+            },
+            "description": "UUID do treinador cadastrado. Copie data.id de POST /trainers ou id de GET /trainers."
           }
         ],
         "responses": {
           "201": {
-            "description": "Pokémon capturado e associado ao treinador."
+            "description": "Pokémon capturado e associado ao treinador.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Pokémon capturado com sucesso!"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Pokemon"
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Dados inválidos.",
@@ -1198,6 +1322,10 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CapturePokemonDto"
+              },
+              "example": {
+                "name": "pikachu",
+                "level": 5
               }
             }
           }
@@ -1218,9 +1346,9 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid",
-              "example": "550e8400-e29b-41d4-a716-446655440000"
-            }
+              "format": "uuid"
+            },
+            "description": "UUID do treinador cadastrado. Copie data.id de POST /trainers ou id de GET /trainers."
           }
         ],
         "responses": {
@@ -1269,9 +1397,9 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid",
-              "example": "550e8400-e29b-41d4-a716-446655440000"
-            }
+              "format": "uuid"
+            },
+            "description": "UUID do treinador cadastrado. Copie data.id de POST /trainers ou id de GET /trainers."
           }
         ],
         "responses": {
@@ -1330,6 +1458,9 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdateTrainerDto"
+              },
+              "example": {
+                "city": "Niterói"
               }
             }
           }
@@ -1348,9 +1479,9 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid",
-              "example": "550e8400-e29b-41d4-a716-446655440000"
-            }
+              "format": "uuid"
+            },
+            "description": "UUID do treinador cadastrado. Copie data.id de POST /trainers ou id de GET /trainers."
           }
         ],
         "responses": {
@@ -1396,13 +1527,20 @@
               "type": "string",
               "minLength": 2,
               "maxLength": 150,
-              "example": "pika"
+              "example": "pikachu"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Dados oficiais formatados."
+            "description": "Dados oficiais formatados. Consulta não cadastra Pokémon.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PokeApiPokemon"
+                }
+              }
+            }
           },
           "400": {
             "description": "Dados inválidos.",

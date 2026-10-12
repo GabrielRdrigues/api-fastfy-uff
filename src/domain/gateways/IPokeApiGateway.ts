@@ -13,7 +13,7 @@ export interface ExternalPokemonDetails {
     speed: number;
   };
 }
-
-export interface PokemonExternalGateway {
+// Definir a interface de como a aplicação consulta a Poke API
+export interface IPokeApiGateway {
   findByName(name: string): Promise<ExternalPokemonDetails | null>;
 }

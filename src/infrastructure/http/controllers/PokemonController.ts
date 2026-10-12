@@ -1,4 +1,5 @@
-﻿import { Request, Response } from 'express';
+﻿import { TrainPokemon } from '@application/use-cases/TrainPokemon';
+import { Request, Response } from 'express';
 import {
   CreatePokemonDTO,
   PokemonListFilters,
@@ -24,6 +25,7 @@ export class PokemonController {
     private readonly updatePokemonLevel: UpdatePokemonLevel,
     private readonly searchPokemons: SearchPokemons,
     private readonly countPokemons: CountPokemons,
+    private readonly trainPokemon: TrainPokemon,
   ) {}
 
   async list(_req: Request, res: Response): Promise<Response> {
@@ -62,6 +64,11 @@ export class PokemonController {
     const { id } = this.validated<{ id: string }>(res, 'params');
     await this.deletePokemon.execute(id);
     return res.status(204).send();
+  }
+
+  async train(_req: Request, res: Response): Promise<Response> {
+    const { id } = this.validated<{ id: string }>(res, 'params');
+    return res.status(200).json(await this.trainPokemon.execute(id));
   }
 
   async updateLevel(_req: Request, res: Response): Promise<Response> {

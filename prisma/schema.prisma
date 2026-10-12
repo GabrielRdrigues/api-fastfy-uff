@@ -31,6 +31,8 @@ model Pokemon {
   baseExperience Int      @default(0) @map("base_experience")
   height         Int      @default(0)
   weight         Int      @default(0)
+  experience     Int      @default(0)
+  lastTrainedAt  DateTime? @map("last_trained_at") @db.Timestamptz
   level          Int      @default(1)
   imageUrl       String?  @map("image_url")
   trainerId      String?  @map("trainer_id") @db.Uuid

@@ -127,6 +127,13 @@ export class PrismaPokemonRepository implements IPokemonRepository {
     return prisma.pokemon.delete({ where: { id } });
   }
 
+  async saveTraining(
+    id: string,
+    data: Pick<Pokemon, 'level' | 'experience' | 'lastTrainedAt'>,
+  ): Promise<Pokemon> {
+    return prisma.pokemon.update({ where: { id }, data });
+  }
+
   async updateLevel(id: string, newLevel: number): Promise<void> {
     await prisma.pokemon.update({
       where: { id },

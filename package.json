@@ -14,7 +14,10 @@
     "db:migrate": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "test:integration": "npm run build && node --test tests/stage2.integration.test.cjs"
+    "test:integration": "npm run build && node --test tests/stage2.integration.test.cjs",
+    "test:training": "npm run build && node --test tests/training.test.cjs",
+    "test:swagger": "npm run build && node --test tests/swagger.test.cjs",
+    "test:errors": "npm run build && node --test tests/errors.test.cjs"
   },
   "keywords": [],
   "author": "",

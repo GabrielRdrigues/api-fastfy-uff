@@ -64,6 +64,11 @@ export const updatePokemonSchema = z
     message: 'Informe ao menos um campo para atualização',
   });
 
+export const trainPokemonSchema = z
+  .object({})
+  .strict('O treinamento não aceita campos no corpo')
+  .optional();
+
 export const updatePokemonLevelSchema = z
   .object({ level: z.number().int().min(1).max(100) })
   .strict('O payload contém campos não permitidos');

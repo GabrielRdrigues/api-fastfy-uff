@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { ZodError, ZodSchema } from 'zod';
-import { AppError } from '@domain/errors/AppError';
+import { ZodSchema } from 'zod';
 
 interface RequestValidationSchemas {
   body?: ZodSchema;
@@ -32,15 +31,6 @@ export const validateRequest = (schemas: RequestValidationSchemas) => {
       res.locals.validated = validated;
       next();
     } catch (error) {
-      if (error instanceof ZodError) {
-        // Mostra qual campo deu ruim, para quem chamou saber o que corrigir.
-        const details = error.issues.map((issue) => ({
-          field: issue.path.join('.'),
-          message: issue.message,
-        }));
-        next(new AppError('Dados de entrada inválidos', 400, details));
-        return;
-      }
       next(error);
     }
   };

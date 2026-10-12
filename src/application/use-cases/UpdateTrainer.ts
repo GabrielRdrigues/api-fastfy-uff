@@ -1,6 +1,6 @@
 import { UpdateTrainerDTO } from '@application/dtos/trainer';
 import { Trainer } from '@domain/entities/Trainer';
-import { AppError } from '@domain/errors/AppError';
+import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ITrainerRepository } from '@domain/repositories/ITrainerRepository';
 
 export class UpdateTrainer {
@@ -14,7 +14,7 @@ export class UpdateTrainer {
     });
 
     if (!trainer) {
-      throw new AppError('Treinador não encontrado.', 404);
+      throw new NotFoundError('Treinador');
     }
 
     return trainer;

@@ -2,8 +2,8 @@ import axios, { AxiosInstance } from 'axios';
 import { AppError } from '@domain/errors/AppError';
 import {
   ExternalPokemonDetails,
-  PokemonExternalGateway,
-} from '@domain/gateways/pokemon-external-gateway';
+  IPokeApiGateway,
+} from '@domain/gateways/IPokeApiGateway';
 
 interface PokeApiResponse {
   id: number;
@@ -16,7 +16,7 @@ interface PokeApiResponse {
   stats: Array<{ base_stat: number; stat: { name: string } }>;
 }
 
-export class PokeApiAxiosGateway implements PokemonExternalGateway {
+export class PokeApiAxiosGateway implements IPokeApiGateway {
   constructor(
     private readonly httpClient: Pick<AxiosInstance, 'get'> = axios.create({
       baseURL: 'https://pokeapi.co/api/v2',
@@ -61,6 +61,8 @@ export class PokeApiAxiosGateway implements PokemonExternalGateway {
       throw new AppError(
         'O serviço externo da PokeAPI está temporariamente indisponível. Tente novamente mais tarde',
         503,
+        undefined,
+        { cause: error },
       );
     }
   }

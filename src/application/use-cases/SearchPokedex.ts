@@ -1,8 +1,8 @@
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import {
   ExternalPokemonDetails,
-  PokemonExternalGateway,
-} from '@domain/gateways/pokemon-external-gateway';
+  IPokeApiGateway,
+} from '@domain/gateways/IPokeApiGateway';
 
 export interface PokedexPokemon {
   id: number;
@@ -16,7 +16,7 @@ export interface PokedexPokemon {
 }
 
 export class SearchPokedex {
-  constructor(private readonly pokeApiGateway: PokemonExternalGateway) {}
+  constructor(private readonly pokeApiGateway: IPokeApiGateway) {}
 
   async execute(name: string): Promise<PokedexPokemon> {
     // Aqui é só dar uma olhada na Pokédex: consultar não salva nem captura.

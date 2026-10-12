@@ -34,7 +34,7 @@ trainerRouter.get(
       #swagger.tags = ['Treinadores']
       #swagger.summary = 'Lista o time atual do treinador'
       #swagger.parameters['trainerId'] = { in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }
-      #swagger.responses[200] = { description: 'Time atual, com até seis Pokémons.' }
+      #swagger.responses[200] = { description: 'Time atual, com até seis Pokémon.', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/Pokemon' } } } } }
       #swagger.responses[404] = { description: 'Treinador não encontrado.' }
     */
     return trainerController.team(req, res);
@@ -53,7 +53,7 @@ trainerRouter.post(
       #swagger.summary = 'Captura um Pokémon consultando a PokéAPI'
       #swagger.parameters['trainerId'] = { in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }
       #swagger.requestBody = { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/CapturePokemonDto' } } } }
-      #swagger.responses[201] = { description: 'Pokémon capturado e associado ao treinador.' }
+      #swagger.responses[201] = { description: 'Pokémon capturado e associado ao treinador.', content: { 'application/json': { schema: { type: 'object', properties: { message: { type: 'string', example: 'Pokémon capturado com sucesso!' }, data: { $ref: '#/components/schemas/Pokemon' } } } } } }
       #swagger.responses[404] = { description: 'Treinador ou Pokémon não encontrado.' }
       #swagger.responses[409] = { description: 'O treinador já possui seis Pokémons.' }
       #swagger.responses[503] = { description: 'PokéAPI temporariamente indisponível.' }

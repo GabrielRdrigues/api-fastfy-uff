@@ -1,7 +1,7 @@
 import {
   ExternalPokemonDetails,
-  PokemonExternalGateway,
-} from '@domain/gateways/pokemon-external-gateway';
+  IPokeApiGateway,
+} from '@domain/gateways/IPokeApiGateway';
 
 const pokemons: ExternalPokemonDetails[] = [
   {
@@ -39,7 +39,7 @@ const pokemons: ExternalPokemonDetails[] = [
   },
 ];
 
-export class InMemoryPokemonGateway implements PokemonExternalGateway {
+export class InMemoryPokemonGateway implements IPokeApiGateway {
   async findByName(name: string): Promise<ExternalPokemonDetails | null> {
     const normalizedName = name.trim().toLowerCase();
     return pokemons.find((pokemon) => pokemon.name === normalizedName) ?? null;

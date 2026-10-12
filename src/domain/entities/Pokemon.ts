@@ -12,6 +12,8 @@ export interface Pokemon {
   height: number;
   weight: number;
   level: number;
+  experience: number;
+  lastTrainedAt: Date | null;
   imageUrl: string | null;
   trainerId: string | null;
   createdAt: Date;

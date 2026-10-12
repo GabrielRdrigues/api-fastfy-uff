@@ -1,7 +1,7 @@
 import { Pokemon } from '@domain/entities/Pokemon';
 import { ConflictError } from '@domain/errors/ConflictError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
-import { PokemonExternalGateway } from '@domain/gateways/pokemon-external-gateway';
+import { IPokeApiGateway } from '@domain/gateways/IPokeApiGateway';
 import { IPokemonRepository } from '@domain/repositories/IPokemonRepository';
 import { ITrainerRepository } from '@domain/repositories/ITrainerRepository';
 
@@ -9,7 +9,7 @@ export class CapturePokemon {
   constructor(
     private readonly trainerRepository: ITrainerRepository,
     private readonly pokemonRepository: IPokemonRepository,
-    private readonly pokeApiGateway: PokemonExternalGateway,
+    private readonly pokeApiGateway: IPokeApiGateway,
   ) {}
 
   async execute(trainerId: string, name: string, level = 1): Promise<Pokemon> {

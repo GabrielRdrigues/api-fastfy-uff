@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { AppError } from '@domain/errors/AppError';
+import { ValidationError } from '@domain/errors/ValidationError';
 import { ConflictError } from '@domain/errors/ConflictError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 
@@ -11,25 +12,25 @@ export class PrismaErrorMapper {
     switch (error.code) {
       case 'P2002': {
         const target = Array.isArray(error.meta?.target)
-          ? error.meta.target.join(', ')
+          ? error.meta.target
+              .filter((field) => ['id', 'email'].includes(String(field)))
+              .join(', ') || 'campo único'
           : 'campo único';
         return new ConflictError(
           `Já existe um registro cadastrado com este ${target}.`,
         );
       }
       case 'P2003':
-        return new AppError(
+        return new ValidationError(
           'Relacionamento inválido. O recurso associado não existe.',
-          400,
         );
       case 'P2025':
         if (notFoundMessage) return new AppError(notFoundMessage, 404);
         return new NotFoundError('Registro no banco de dados');
       default:
-        return new AppError(
-          'Erro ao processar operação no banco de dados.',
-          500,
-        );
+        return new AppError('Erro interno do servidor.', 500, undefined, {
+          cause: error,
+        });
     }
   }
 }

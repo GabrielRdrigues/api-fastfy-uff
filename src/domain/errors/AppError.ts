@@ -3,8 +3,9 @@ export class AppError extends Error {
     message: string,
     public readonly statusCode = 400,
     public readonly details?: unknown,
+    options?: ErrorOptions,
   ) {
-    super(message);
-    this.name = 'AppError';
+    super(message, options);
+    this.name = new.target.name;
   }
 }
