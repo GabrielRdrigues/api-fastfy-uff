@@ -1,18 +1,13 @@
-import { Pokemon } from '../../domain/entities/Pokemon';
-import { IPokemonRepository } from '../../domain/repositories/IPokemonRepository';
+import {
+  PaginatedPokemons,
+  PokemonListFilters,
+} from '@application/dtos/pokemon';
+import { IPokemonRepository } from '@domain/repositories/IPokemonRepository';
 
 export class ListPokemons {
   constructor(private readonly pokemonRepository: IPokemonRepository) {}
 
-  execute(type?: string): Pokemon[] {
-    const pokemons = this.pokemonRepository.findAll();
-
-    if (!type) {
-      return pokemons;
-    }
-
-    return pokemons.filter(
-      (pokemon) => pokemon.type.toLowerCase() === type.toLowerCase(),
-    );
+  async execute(filters: PokemonListFilters): Promise<PaginatedPokemons> {
+    return this.pokemonRepository.findAll(filters);
   }
 }

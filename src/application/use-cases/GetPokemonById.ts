@@ -1,10 +1,15 @@
-import { Pokemon } from '../../domain/entities/Pokemon';
-import { IPokemonRepository } from '../../domain/repositories/IPokemonRepository';
+import { Pokemon } from '@domain/entities/Pokemon';
+import { IPokemonRepository } from '@domain/repositories/IPokemonRepository';
+import { AppError } from '@domain/errors/AppError';
 
 export class GetPokemonById {
   constructor(private readonly pokemonRepository: IPokemonRepository) {}
 
-  execute(id: string): Pokemon | undefined {
-    return this.pokemonRepository.findById(id);
+  async execute(id: string): Promise<Pokemon> {
+    const pokemon = await this.pokemonRepository.findById(id);
+    if (!pokemon) {
+      throw new AppError('Pokémon não encontrado no catálogo.', 404);
+    }
+    return pokemon;
   }
 }

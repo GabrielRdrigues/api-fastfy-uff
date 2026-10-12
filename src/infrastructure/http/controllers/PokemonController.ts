@@ -1,10 +1,19 @@
-import { Request, Response } from 'express';
-import { CreatePokemon } from '../../../application/use-cases/CreatePokemon';
-import { DeletePokemon } from '../../../application/use-cases/DeletePokemon';
-import { GetPokemonById } from '../../../application/use-cases/GetPokemonById';
-import { ListPokemons } from '../../../application/use-cases/ListPokemons';
-import { UpdatePokemon } from '../../../application/use-cases/UpdatePokemon';
+﻿import { Request, Response } from 'express';
+import {
+  CreatePokemonDTO,
+  PokemonListFilters,
+  UpdatePokemonDTO,
+} from '@application/dtos/pokemon';
+import { CountPokemons } from '@application/use-cases/CountPokemons';
+import { CreatePokemon } from '@application/use-cases/CreatePokemon';
+import { DeletePokemon } from '@application/use-cases/DeletePokemon';
+import { GetPokemonById } from '@application/use-cases/GetPokemonById';
+import { ListPokemons } from '@application/use-cases/ListPokemons';
+import { SearchPokemons } from '@application/use-cases/SearchPokemons';
+import { UpdatePokemon } from '@application/use-cases/UpdatePokemon';
+import { UpdatePokemonLevel } from '@application/use-cases/UpdatePokemonLevel';
 
+// Faz a ponte HTTP: recebe dados validados, chama o caso de uso e responde em JSON.
 export class PokemonController {
   constructor(
     private readonly createPokemon: CreatePokemon,
@@ -12,70 +21,36 @@ export class PokemonController {
     private readonly getPokemonById: GetPokemonById,
     private readonly updatePokemon: UpdatePokemon,
     private readonly deletePokemon: DeletePokemon,
+    private readonly updatePokemonLevel: UpdatePokemonLevel,
+    private readonly searchPokemons: SearchPokemons,
+    private readonly countPokemons: CountPokemons,
   ) {}
 
-  list(req: Request, res: Response): Response {
-    const type = req.query.type ? String(req.query.type) : undefined;
-    const pokemons = this.listPokemons.execute(type);
-
-    return res.status(200).json(pokemons);
+  async list(_req: Request, res: Response): Promise<Response> {
+    const filters = this.validated<PokemonListFilters>(res, 'query');
+    return res.status(200).json(await this.listPokemons.execute(filters));
   }
 
-  getById(req: Request, res: Response): Response {
-    const pokemon = this.getPokemonById.execute(String(req.params.id));
-
-    if (!pokemon) {
-      return res.status(404).json({
-        error: 'Pokémon não encontrado no catálogo.',
-      });
-    }
-
+  async getById(_req: Request, res: Response): Promise<Response> {
+    const { id } = this.validated<{ id: string }>(res, 'params');
+    const pokemon = await this.getPokemonById.execute(id);
     return res.status(200).json(pokemon);
   }
 
-  create(req: Request, res: Response): Response {
-    const { id, name, type, hp } = req.body;
+  async create(_req: Request, res: Response): Promise<Response> {
+    const body = this.validated<CreatePokemonDTO>(res, 'body');
+    const pokemon = await this.createPokemon.execute(body);
 
-    if (!id || !name || !type || hp === undefined || hp === null) {
-      return res.status(400).json({
-        error:
-          'Campos obrigatórios ausentes: id, name, type e hp são necessários.',
-      });
-    }
-
-    try {
-      const pokemon = this.createPokemon.execute({
-        id: String(id),
-        name,
-        type,
-        hp: Number(hp),
-      });
-
-      return res.status(201).json({
-        message: 'Pokémon cadastrado com sucesso!',
-        data: pokemon,
-      });
-    } catch (error) {
-      return res.status(400).json({
-        error:
-          error instanceof Error ? error.message : 'Erro ao cadastrar Pokémon.',
-      });
-    }
+    return res.status(201).json({
+      message: 'Pokémon cadastrado com sucesso!',
+      data: pokemon,
+    });
   }
 
-  update(req: Request, res: Response): Response {
-    const { name, type, hp } = req.body;
-    const pokemon = this.updatePokemon.execute(String(req.params.id), {
-      name,
-      type,
-      hp: hp === undefined ? undefined : Number(hp),
-    });
-
-    if (!pokemon) {
-      return res.status(404).json({
-        error: 'Pokémon não encontrado no catálogo.',
-      });
-    }
+  async update(_req: Request, res: Response): Promise<Response> {
+    const data = this.validated<UpdatePokemonDTO>(res, 'body');
+    const { id } = this.validated<{ id: string }>(res, 'params');
+    const pokemon = await this.updatePokemon.execute(id, data);
 
     return res.status(200).json({
       message: 'Pokémon atualizado com sucesso!',
@@ -83,15 +58,32 @@ export class PokemonController {
     });
   }
 
-  delete(req: Request, res: Response): Response {
-    const pokemon = this.deletePokemon.execute(String(req.params.id));
-
-    if (!pokemon) {
-      return res.status(404).json({
-        error: 'Pokémon não encontrado no catálogo.',
-      });
-    }
-
+  async delete(_req: Request, res: Response): Promise<Response> {
+    const { id } = this.validated<{ id: string }>(res, 'params');
+    await this.deletePokemon.execute(id);
     return res.status(204).send();
+  }
+
+  async updateLevel(_req: Request, res: Response): Promise<Response> {
+    const { id } = this.validated<{ id: string }>(res, 'params');
+    const { level } = this.validated<{ level: number }>(res, 'body');
+    await this.updatePokemonLevel.execute(id, level);
+    return res.status(204).send();
+  }
+
+  async search(_req: Request, res: Response): Promise<Response> {
+    const { name } = this.validated<{ name: string }>(res, 'query');
+    const pokemons = await this.searchPokemons.execute(name);
+    return res.status(200).json(pokemons);
+  }
+
+  async count(_req: Request, res: Response): Promise<Response> {
+    const count = await this.countPokemons.execute();
+    return res.status(200).json({ count });
+  }
+
+  private validated<T>(res: Response, target: string): T {
+    // O "as T" só informa o tipo ao TypeScript; quem validou de verdade foi o Zod.
+    return res.locals.validated[target] as T;
   }
 }

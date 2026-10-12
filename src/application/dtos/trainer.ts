@@ -1,8 +1,11 @@
-interface CreateTrainerDTO {
+export interface CreateTrainerDTO {
   name: string;
-  age: number;
+  email: string;
   city: string;
 }
 
-
-export { CreateTrainerDTO };
+export interface UpdateTrainerDTO {
+  name?: string;
+  email?: string;
+  city?: string;
+}
