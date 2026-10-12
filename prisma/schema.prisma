@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Trainer {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String    @db.VarChar(150)
+  email     String    @unique @db.VarChar(255)
+  city      String    @db.VarChar(100)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  pokemons  Pokemon[]
+
+  @@map("trainers")
+}
+
+model Pokemon {
+  id             String   @id @default(uuid()) @db.VarChar(100)
+  pokeApiId      Int?     @map("poke_api_id")
+  name           String   @db.VarChar(150)
+  type           String   @db.VarChar(100)
+  types          String[] @default([])
+  hp             Int
+  attack         Int      @default(0)
+  defense        Int      @default(0)
+  speed          Int      @default(0)
+  baseExperience Int      @default(0) @map("base_experience")
+  height         Int      @default(0)
+  weight         Int      @default(0)
+  experience     Int      @default(0)
+  lastTrainedAt  DateTime? @map("last_trained_at") @db.Timestamptz
+  level          Int      @default(1)
+  imageUrl       String?  @map("image_url")
+  trainerId      String?  @map("trainer_id") @db.Uuid
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+  trainer        Trainer? @relation(fields: [trainerId], references: [id], onDelete: SetNull)
+
+  @@index([trainerId])
+  @@map("pokemons")
+}

@@ -1,10 +1,15 @@
-import { Pokemon } from '../../domain/entities/Pokemon';
-import { IPokemonRepository } from '../../domain/repositories/IPokemonRepository';
+import { Pokemon } from '@domain/entities/Pokemon';
+import { IPokemonRepository } from '@domain/repositories/IPokemonRepository';
+import { NotFoundError } from '@domain/errors/NotFoundError';
 
 export class DeletePokemon {
   constructor(private readonly pokemonRepository: IPokemonRepository) {}
 
-  execute(id: string): Pokemon | undefined {
-    return this.pokemonRepository.delete(id);
+  async execute(id: string): Promise<Pokemon> {
+    const pokemon = await this.pokemonRepository.delete(id);
+    if (!pokemon) {
+      throw new NotFoundError('Pokémon');
+    }
+    return pokemon;
   }
 }
