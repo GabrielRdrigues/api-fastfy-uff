@@ -162,7 +162,6 @@ src/infrastructure/gateways/  PokéAPI via Axios e fallback em memória
 src/infrastructure/http/      Controllers, schemas Zod, rotas e middleware
 src/main/                     Configuração, factories e servidor
 database/                     SQL histórico da aula 8
-tests/                        Testes integrados da Etapa 2
 ```
 
 Desenvolvido por Gabriel Rodrigues Marques Valim.
