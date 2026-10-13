@@ -9,6 +9,7 @@ import { Pokemon } from '@domain/entities/Pokemon';
 import { ConflictError } from '@domain/errors/ConflictError';
 import { IPokemonRepository } from '@domain/repositories/IPokemonRepository';
 import { prisma } from './client';
+import { unlockTrainerAchievements } from './unlockTrainerAchievements';
 
 export class PrismaPokemonRepository implements IPokemonRepository {
   async findAll(filters: PokemonListFilters): Promise<PaginatedPokemons> {
@@ -53,7 +54,7 @@ export class PrismaPokemonRepository implements IPokemonRepository {
         await this.checkTeamCapacity(transaction, data.trainerId);
       }
 
-      return transaction.pokemon.create({
+      const pokemon = await transaction.pokemon.create({
         data: {
           ...(data.id ? { id: data.id } : {}),
           pokeApiId: data.pokeApiId,
@@ -73,6 +74,8 @@ export class PrismaPokemonRepository implements IPokemonRepository {
           trainerId: data.trainerId,
         },
       });
+      await unlockTrainerAchievements(transaction, pokemon.trainerId);
+      return pokemon;
     });
   }
 
@@ -83,7 +86,7 @@ export class PrismaPokemonRepository implements IPokemonRepository {
         await this.checkTeamCapacity(transaction, data.trainerId, id);
       }
 
-      return transaction.pokemon.update({
+      const pokemon = await transaction.pokemon.update({
         where: { id },
         data: {
           ...data,
@@ -95,6 +98,8 @@ export class PrismaPokemonRepository implements IPokemonRepository {
             : {}),
         },
       });
+      await unlockTrainerAchievements(transaction, pokemon.trainerId);
+      return pokemon;
     });
   }
 
@@ -131,14 +136,15 @@ export class PrismaPokemonRepository implements IPokemonRepository {
     id: string,
     data: Pick<Pokemon, 'level' | 'experience' | 'lastTrainedAt'>,
   ): Promise<Pokemon> {
-    return prisma.pokemon.update({ where: { id }, data });
+    return prisma.$transaction(async (transaction) => {
+      const pokemon = await transaction.pokemon.update({ where: { id }, data });
+      await unlockTrainerAchievements(transaction, pokemon.trainerId);
+      return pokemon;
+    });
   }
 
   async updateLevel(id: string, newLevel: number): Promise<void> {
-    await prisma.pokemon.update({
-      where: { id },
-      data: { level: newLevel },
-    });
+    await this.update(id, { level: newLevel });
   }
 
   async searchByName(term: string): Promise<Pokemon[]> {

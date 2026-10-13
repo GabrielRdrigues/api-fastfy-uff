@@ -143,6 +143,51 @@
           }
         }
       },
+      "TrainerAchievements": {
+        "type": "object",
+        "properties": {
+          "trainerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "achievements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "enum": [
+                    "FIRST_CAPTURE",
+                    "FULL_TEAM",
+                    "LEVEL_10"
+                  ]
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "unlocked": {
+                  "type": "boolean"
+                },
+                "unlockedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "nullable": true
+                },
+                "progress": {
+                  "type": "integer"
+                },
+                "target": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      },
       "TrainingResult": {
         "type": "object",
         "properties": {
@@ -1184,6 +1229,59 @@
                 "name": "Ash Ketchum",
                 "email": "ash@example.com",
                 "city": "Pallet Town"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/trainers/{trainerId}/achievements": {
+      "get": {
+        "tags": [
+          "Treinadores"
+        ],
+        "summary": "Lista conquistas permanentes e progresso do treinador",
+        "description": "",
+        "parameters": [
+          {
+            "name": "trainerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "UUID do treinador cadastrado. Copie data.id de POST /trainers ou id de GET /trainers."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Conquistas desbloqueadas e bloqueadas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainerAchievements"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "UUID inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Treinador não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }

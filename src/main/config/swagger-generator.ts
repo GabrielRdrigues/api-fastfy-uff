@@ -100,6 +100,34 @@ const doc = {
         ],
         properties: pokemonProperties,
       },
+      TrainerAchievements: {
+        type: 'object',
+        properties: {
+          trainerId: { type: 'string', format: 'uuid' },
+          achievements: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                code: {
+                  type: 'string',
+                  enum: ['FIRST_CAPTURE', 'FULL_TEAM', 'LEVEL_10'],
+                },
+                name: { type: 'string' },
+                description: { type: 'string' },
+                unlocked: { type: 'boolean' },
+                unlockedAt: {
+                  type: 'string',
+                  format: 'date-time',
+                  nullable: true,
+                },
+                progress: { type: 'integer' },
+                target: { type: 'integer' },
+              },
+            },
+          },
+        },
+      },
       TrainingResult: {
         type: 'object',
         properties: {
@@ -321,6 +349,7 @@ async function generateSwagger(): Promise<void> {
     '/api/v1/trainers/{id}': ['get', 'put', 'delete'],
     '/api/v1/trainers/{trainerId}/captures': ['post'],
     '/api/v1/trainers/{trainerId}/team': ['get'],
+    '/api/v1/trainers/{trainerId}/achievements': ['get'],
     '/api/v1/pokedex/search': ['get'],
   };
   for (const [route, methods] of Object.entries(requiredRoutes)) {

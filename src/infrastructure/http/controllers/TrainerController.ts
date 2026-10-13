@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { GetTrainerAchievements } from '@application/use-cases/GetTrainerAchievements';
 import { CreateTrainer } from '@application/use-cases/CreateTrainer';
 import { CapturePokemon } from '@application/use-cases/CapturePokemon';
 import { DeleteTrainer } from '@application/use-cases/DeleteTrainer';
@@ -17,6 +18,7 @@ export class TrainerController {
     private readonly capturePokemon: CapturePokemon,
     private readonly getTrainerTeam: GetTrainerTeam,
     private readonly deleteTrainer: DeleteTrainer,
+    private readonly getTrainerAchievements: GetTrainerAchievements,
   ) {}
 
   async list(_req: Request, res: Response): Promise<Response> {
@@ -66,6 +68,13 @@ export class TrainerController {
   async team(_req: Request, res: Response): Promise<Response> {
     const { trainerId } = this.params<{ trainerId: string }>(res);
     return res.status(200).json(await this.getTrainerTeam.execute(trainerId));
+  }
+
+  async achievements(_req: Request, res: Response): Promise<Response> {
+    const { trainerId } = this.params<{ trainerId: string }>(res);
+    return res
+      .status(200)
+      .json(await this.getTrainerAchievements.execute(trainerId));
   }
 
   async delete(_req: Request, res: Response): Promise<Response> {

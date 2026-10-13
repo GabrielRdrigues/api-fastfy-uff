@@ -1,21 +1,20 @@
 import { CreatePokemonDTO } from '@application/dtos/pokemon';
 import { Pokemon } from '@domain/entities/Pokemon';
 import { IPokemonRepository } from '@domain/repositories/IPokemonRepository';
-import { AppError } from '@domain/errors/AppError';
 import { ConflictError } from '@domain/errors/ConflictError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
-import { PokemonExternalGateway } from '@domain/gateways/pokemon-external-gateway';
+import { IPokeApiGateway } from '@domain/gateways/IPokeApiGateway';
 
 export class CreatePokemon {
   constructor(
     private readonly pokemonRepository: IPokemonRepository,
-    private readonly pokemonExternalGateway: PokemonExternalGateway,
+    private readonly pokemonExternalGateway: IPokeApiGateway,
   ) {}
 
   async execute(data: CreatePokemonDTO): Promise<Pokemon> {
     // Mesmo Pikachu, outro registro: repetir a espécie pode; repetir o ID não.
     if (data.id && (await this.pokemonRepository.findById(data.id))) {
-      throw new AppError('Pokémon com este ID já existe.', 409);
+      throw new ConflictError('Pokémon com este ID já existe.');
     }
 
     // Sem trainerId, fica sem squad. Com treinador, checamos se há vaga no time.
