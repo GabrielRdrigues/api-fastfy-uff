@@ -8,12 +8,13 @@ datasource db {
 }
 
 model Trainer {
-  id        String    @id @default(uuid()) @db.Uuid
-  name      String    @db.VarChar(150)
-  email     String    @unique @db.VarChar(255)
-  city      String    @db.VarChar(100)
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  pokemons  Pokemon[]
+  id           String               @id @default(uuid()) @db.Uuid
+  name         String               @db.VarChar(150)
+  email        String               @unique @db.VarChar(255)
+  city         String               @db.VarChar(100)
+  createdAt    DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  pokemons     Pokemon[]
+  achievements TrainerAchievement[]
 
   @@map("trainers")
 }
@@ -41,4 +42,14 @@ model Pokemon {
 
   @@index([trainerId])
   @@map("pokemons")
+}
+
+model TrainerAchievement {
+  trainerId  String   @map("trainer_id") @db.Uuid
+  code       String   @db.VarChar(50)
+  unlockedAt DateTime @default(now()) @map("unlocked_at") @db.Timestamptz
+  trainer    Trainer  @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+
+  @@id([trainerId, code])
+  @@map("trainer_achievements")
 }

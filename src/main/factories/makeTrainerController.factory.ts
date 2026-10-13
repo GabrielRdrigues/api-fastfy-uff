@@ -1,3 +1,5 @@
+import { GetTrainerAchievements } from '@application/use-cases/GetTrainerAchievements';
+import { PrismaTrainerAchievementRepository } from '@infrastructure/database/prisma/PrismaTrainerAchievementRepository';
 import { CreateTrainer } from '@application/use-cases/CreateTrainer';
 import { CapturePokemon } from '@application/use-cases/CapturePokemon';
 import { DeleteTrainer } from '@application/use-cases/DeleteTrainer';
@@ -24,5 +26,10 @@ export function makeTrainerController(): TrainerController {
     new CapturePokemon(trainerRepository, pokemonRepository, pokeApiGateway),
     new GetTrainerTeam(trainerRepository, pokemonRepository),
     new DeleteTrainer(trainerRepository),
+    new GetTrainerAchievements(
+      trainerRepository,
+      pokemonRepository,
+      new PrismaTrainerAchievementRepository(),
+    ),
   );
 }

@@ -27,6 +27,22 @@ trainerRouter.get('/', (req, res) => {
 });
 
 trainerRouter.get(
+  '/:trainerId/achievements',
+  validateRequest({ params: trainerCaptureParamsSchema }),
+  (req, res) => {
+    /*
+      #swagger.tags = ['Treinadores']
+      #swagger.summary = 'Lista conquistas permanentes e progresso do treinador'
+      #swagger.parameters['trainerId'] = { in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }
+      #swagger.responses[200] = { description: 'Conquistas desbloqueadas e bloqueadas.', content: { 'application/json': { schema: { $ref: '#/components/schemas/TrainerAchievements' } } } }
+      #swagger.responses[400] = { description: 'UUID inválido.' }
+      #swagger.responses[404] = { description: 'Treinador não encontrado.' }
+    */
+    return trainerController.achievements(req, res);
+  },
+);
+
+trainerRouter.get(
   '/:trainerId/team',
   validateRequest({ params: trainerCaptureParamsSchema }),
   (req, res) => {
